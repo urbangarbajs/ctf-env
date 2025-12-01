@@ -1,0 +1,52 @@
+version: "3.9"
+
+networks:
+  ctf_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
+          gateway: 10.10.10.1
+
+services:
+  web_emr:
+    build: ./web-emr
+    container_name: ctf_web_emr
+    networks:
+      ctf_net:
+        ipv4_address: 10.10.10.10
+    environment:
+      DB_HOST: "10.10.10.20"
+      DB_USER: "emrAdmin"
+      DB_PASS: "P@ssw0rd!"
+      DB_NAME: "emr_db"
+      FLAG_SQLI: "FLAG{SQLI_LOGIN_BYPASS_4}"
+    # for local testing you could uncomment:
+    # ports:
+    #   - "8080:80"
+
+  db_emr:
+    build: ./db-emr
+    container_name: ctf_db_emr
+    networks:
+      ctf_net:
+        ipv4_address: 10.10.10.20
+    environment:
+      MYSQL_ROOT_PASSWORD: "rootpass"
+      MYSQL_DATABASE: "emr_db"
+      MYSQL_USER: "emrAdmin"
+      MYSQL_PASSWORD: "P@ssw0rd!"
+
+  smb_file:
+    build: ./smb-file
+    container_name: ctf_smb_file
+    networks:
+      ctf_net:
+        ipv4_address: 10.10.10.30
+
+  vuln_host:
+    build: ./vuln-host
+    container_name: ctf_vuln_host
+    networks:
+      ctf_net:
+        ipv4_address: 10.10.10.40

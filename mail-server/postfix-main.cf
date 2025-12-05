@@ -1,0 +1,12 @@
+myhostname = srv-mail.healthyclinic.local
+myorigin = /etc/mailname
+mydestination = $myhostname, localhost.localdomain, localhost
+relayhost =
+inet_interfaces = all
+inet_protocols = ipv4
+smtpd_banner = HealthyClinic Mail (Postfix)
+home_mailbox = mail/
+local_transport = local
+local_recipient_maps =
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases

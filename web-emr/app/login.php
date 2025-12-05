@@ -7,12 +7,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $_POST['username'] ?? '';
     $pass = $_POST['password'] ?? '';
 
-    // INTENTIONALLY VULNERABLE
+    // INTENTIONALLY VULNERABLE: classic SQL injection in the WHERE clause
     $sql = "SELECT * FROM users WHERE username='$user' AND password='$pass'";
     $res = $mysqli->query($sql);
 
     if ($res && $res->num_rows > 0) {
-        // any row = success
         header("Location: panel.php");
         exit;
     } else {
@@ -27,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
   <h1>EMR Login</h1>
+  <p>CTF hint: this legacy login trusts your input too much. Admin notes mention a patient marked "CTF-Patient".</p>
   <?php if ($message): ?>
     <p style="color:red;"><?php echo htmlspecialchars($message); ?></p>
   <?php endif; ?>

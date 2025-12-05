@@ -7,6 +7,7 @@ $DB_NAME = getenv('DB_NAME') ?: 'emr_db';
 
 // flag from env
 $FLAG_SQLI = getenv('FLAG_SQLI') ?: 'FLAG{DEFAULT_SQLI_FLAG}';
+$FLAG_XSS = getenv('FLAG_XSS') ?: 'FLAG{DEFAULT_XSS_FLAG}';
 
 $mysqli = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
 if ($mysqli->connect_errno) {

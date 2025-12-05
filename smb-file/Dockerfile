@@ -4,6 +4,8 @@ RUN apt-get update && apt-get install -y samba && rm -rf /var/lib/apt/lists/*
 
 COPY smb.conf /etc/samba/smb.conf
 COPY data /srv/samba
+# relaxed permissions for guest access
+RUN chmod -R 755 /srv/samba
 
 # make sure path exists
 RUN mkdir -p /var/run/samba

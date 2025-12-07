@@ -4,7 +4,10 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     openssh-server rsync sudo gnupg && \
     rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m -s /bin/bash backup && echo "backup:HealthyBackup2025!" | chpasswd
+# rsync may create a system user 'backup'; tolerate existing
+RUN if ! id -u backup >/dev/null 2>&1; then useradd -m -s /bin/bash backup; fi && \
+    mkdir -p /home/backup && chown backup:backup /home/backup && \
+    echo "backup:HealthyBackup2025!" | chpasswd
 RUN mkdir -p /var/run/sshd
 
 # Sudo misconfiguration for privilege escalation

@@ -9,17 +9,8 @@ networks:
     ipam:
       config:
         - subnet: 10.10.10.0/24
-          gateway: 10.10.10.1
 
 services:
-  gw_hc:
-    image: alpine:3.19
-    container_name: ctf_gw_hc
-    command: ["sleep", "infinity"]
-    networks:
-      ctf_net:
-        ipv4_address: 10.10.10.1
-
   srv_emr_web:
     build: ./web-emr
     container_name: ctf_srv_emr_web

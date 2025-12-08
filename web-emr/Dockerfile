@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-RUN apt-get update && apt-get install -y openssl openssh-server && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl openssh-server haproxy && rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-install mysqli
 RUN a2enmod headers rewrite ssl
 
@@ -14,6 +14,8 @@ RUN mkdir -p /etc/apache2/ssl && \
 # mimic old Apache banner for CTF identification
 COPY apache.conf /etc/apache2/conf-enabled/zz_ctf.conf
 COPY ssl.conf /etc/apache2/sites-available/ssl.conf
+COPY ports.conf /etc/apache2/ports.conf
+COPY haproxy.cfg /etc/haproxy/haproxy.cfg
 RUN a2ensite ssl.conf
 
 # copy app

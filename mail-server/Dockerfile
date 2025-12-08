@@ -6,14 +6,20 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
 
 RUN useradd -r -u 150 -g mail vmail
 
+RUN echo "srv-mail.healthyclinic.local" > /etc/mailname
 COPY dovecot.conf /etc/dovecot/dovecot.conf
 COPY dovecot.passwd /etc/dovecot/dovecot.passwd
 COPY postfix-main.cf /etc/postfix/main.cf
+COPY postfix-master.cf /tmp/postfix-master.cf
 COPY maildir/ /mail/
 COPY start-mail.sh /usr/local/bin/start-mail.sh
 
-RUN chmod 640 /etc/dovecot/dovecot.passwd && chown root:root /etc/dovecot/dovecot.passwd
+RUN chmod 640 /etc/dovecot/dovecot.passwd && chown dovecot:dovecot /etc/dovecot/dovecot.passwd
 RUN chmod +x /usr/local/bin/start-mail.sh
+RUN chown -R vmail:mail /mail
+
+# Build-time alias db to avoid runtime postfix failures
+RUN cat /tmp/postfix-master.cf >> /etc/postfix/master.cf && newaliases
 
 EXPOSE 25 110 143 587
 

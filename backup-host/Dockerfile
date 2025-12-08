@@ -6,6 +6,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
 
 # rsync may create a system user 'backup'; tolerate existing
 RUN if ! id -u backup >/dev/null 2>&1; then useradd -m -s /bin/bash backup; fi && \
+    usermod -s /bin/bash -d /home/backup backup && \
     mkdir -p /home/backup && chown backup:backup /home/backup && \
     echo "backup:HealthyBackup2025!" | chpasswd
 RUN mkdir -p /var/run/sshd

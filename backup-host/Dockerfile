@@ -8,7 +8,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
 RUN if ! id -u backup >/dev/null 2>&1; then useradd -m -s /bin/bash backup; fi && \
     usermod -s /bin/bash -d /home/backup backup && \
     mkdir -p /home/backup && chown backup:backup /home/backup && \
-    echo "backup:HealthyBackup2025!" | chpasswd
+    echo "backup:HealthyBackup2026!" | chpasswd
 RUN mkdir -p /var/run/sshd
 
 # Sudo misconfiguration for privilege escalation
@@ -24,8 +24,8 @@ COPY start-backup.sh /usr/local/bin/start-backup.sh
 RUN chown backup:backup /home/backup/user_flag.txt
 RUN chmod +x /usr/local/bin/start-backup.sh
 
-# Create GPG encrypted vault with passphrase MRN-2025-CTF-01!
-RUN gpg --batch --yes --passphrase "MRN-2025-CTF-01!" -c /tmp/passwords_plain.txt && \
+# Create GPG encrypted vault with passphrase MRN-2026-CTF-02!
+RUN gpg --batch --yes --passphrase "MRN-2026-CTF-02!" -c /tmp/passwords_plain.txt && \
     mv /tmp/passwords_plain.txt.gpg /root/passwords.gpg && \
     rm /tmp/passwords_plain.txt
 

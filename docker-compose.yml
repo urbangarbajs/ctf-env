@@ -16,14 +16,14 @@ services:
     container_name: ctf_srv_emr_web
     networks:
       ctf_net:
-        ipv4_address: 10.10.10.10
+        ipv4_address: 10.10.10.11
     environment:
-      DB_HOST: "10.10.10.20"
+      DB_HOST: "10.10.10.21"
       DB_USER: "emrAdmin"
-      DB_PASS: "P@ssw0rd!"
+      DB_PASS: "P@ssw0rd2026!"
       DB_NAME: "emr_db"
-      FLAG_SQLI: "HC-CTF{MRN-2025-CTF-01}"
-      FLAG_XSS: "HC-CTF{XSS_EXECUTED}"
+      FLAG_SQLI: "HC-CTF{MRN-2026-CTF-02}"
+      FLAG_XSS: "HC-CTF{XSS_RELOADED}"
     # for local testing:
     # ports:
     #   - "8080:80"
@@ -34,47 +34,47 @@ services:
     container_name: ctf_srv_emr_db
     networks:
       ctf_net:
-        ipv4_address: 10.10.10.20
+        ipv4_address: 10.10.10.21
     environment:
-      MYSQL_ROOT_PASSWORD: "rootpass"
+      MYSQL_ROOT_PASSWORD: "rootpass2026"
       MYSQL_DATABASE: "emr_db"
       MYSQL_USER: "emrAdmin"
-      MYSQL_PASSWORD: "P@ssw0rd!"
+      MYSQL_PASSWORD: "P@ssw0rd2026!"
 
   srv_filesmb:
     build: ./smb-file
     container_name: ctf_srv_filesmb
     networks:
       ctf_net:
-        ipv4_address: 10.10.10.30
+        ipv4_address: 10.10.10.31
 
   srv_ftp_imaging:
     build: ./ftp-imaging
     container_name: ctf_srv_ftp_imaging
     networks:
       ctf_net:
-        ipv4_address: 10.10.10.40
+        ipv4_address: 10.10.10.41
 
   srv_mail:
     build: ./mail-server
     container_name: ctf_srv_mail
     networks:
       ctf_net:
-        ipv4_address: 10.10.10.50
+        ipv4_address: 10.10.10.51
 
   srv_backup:
     build: ./backup-host
     container_name: ctf_srv_backup
     networks:
       ctf_net:
-        ipv4_address: 10.10.10.60
+        ipv4_address: 10.10.10.61
 
   client_mgmt:
     build: ./client-mgmt
     container_name: ctf_client_mgmt
     networks:
       ctf_net:
-        ipv4_address: 10.10.10.70
+        ipv4_address: 10.10.10.71
     # for RDP testing locally:
     # ports:
     #   - "3389:3389"

@@ -10,9 +10,9 @@ CREATE TABLE IF NOT EXISTS users (
 
 INSERT INTO users (username, password, password_hash)
 VALUES
-  ('doctor', 'securepass', SHA2('securepass', 256)),
-  ('nurse', 'nurse2024', SHA2('nurse2024', 256)),
-  ('backup', 'HealthyBackup2025!', '929a9ca8774d3d05f5882bb2619473b5c5026618832affcaeb6cf70fd196962b');
+  ('doctor', 'securepass2026', SHA2('securepass2026', 256)),
+  ('nurse', 'nurse2026', SHA2('nurse2026', 256)),
+  ('backup', 'HealthyBackup2026!', 'a5dbe40bcdc4c33a8c0778770d7e3269f28c00a0944ecc8e368e7ae74a32f5c4');
 
 CREATE TABLE IF NOT EXISTS patients (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS patients (
 
 INSERT INTO patients (mrn, name, note)
 VALUES
-  ('MRN-2025-CTF-01', 'CTF Test Patient', 'CTF-Patient flag location'),
-  ('MRN-2024-0002', 'John Doe', 'routine checkup'),
-  ('MRN-2024-0003', 'Jane Smith', 'allergy follow-up');
+  ('MRN-2026-CTF-02', 'CTF Test Patient', 'CTF-Patient flag location'),
+  ('MRN-2025-0002', 'John Doe', 'routine checkup'),
+  ('MRN-2025-0003', 'Jane Smith', 'allergy follow-up');
 
 CREATE TABLE IF NOT EXISTS staff (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS staff (
 
 INSERT INTO staff (username, email, password)
 VALUES
-  ('nurse.ana', 'nurse.ana@healthyclinic.local', 'Nurse123!'),
-  ('tech.tim', 'tech.tim@healthyclinic.local', 'Techie!2025');
+  ('nurse.ana', 'nurse.ana@healthyclinic.local', 'Nurse2026!'),
+  ('tech.tim', 'tech.tim@healthyclinic.local', 'Techie!2026');
 
 CREATE TABLE IF NOT EXISTS mail_messages (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS mail_messages (
 
 INSERT INTO mail_messages (recipient, sender, subject, body)
 VALUES
-  ('nurse.ana@healthyclinic.local', 'it@healthyclinic.local', 'HC-CTF{EMAIL_LEAK}', 'Confidential message with the mail flag.'),
+  ('nurse.ana@healthyclinic.local', 'it@healthyclinic.local', 'HC-CTF{EMAIL_INTRUSION_2026}', 'Confidential message with the mail flag.'),
   ('nurse.ana@healthyclinic.local', 'it@healthyclinic.local', 'Welcome', 'Welcome to HealthyClinic.');
 
 CREATE TABLE IF NOT EXISTS credentials (
@@ -60,4 +60,4 @@ CREATE TABLE IF NOT EXISTS credentials (
 );
 
 INSERT INTO credentials (service, username, password)
-VALUES ('domain_admin', 'HC-ADMIN', 'Adm1nHC!2025');
+VALUES ('domain_admin', 'HC-ADMIN', 'Adm1nHC!2026');

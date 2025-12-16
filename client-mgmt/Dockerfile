@@ -4,7 +4,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     xrdp xfce4 xfce4-terminal dbus-x11 sudo && \
     rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m -s /bin/bash HC-ADMIN && echo "HC-ADMIN:Adm1nHC!2025" | chpasswd && adduser HC-ADMIN sudo
+RUN useradd -m -s /bin/bash HC-ADMIN && echo "HC-ADMIN:Adm1nHC!2026" | chpasswd && adduser HC-ADMIN sudo
 
 COPY final_flag.txt /home/HC-ADMIN/Desktop/final_flag.txt
 RUN chown HC-ADMIN:HC-ADMIN /home/HC-ADMIN/Desktop/final_flag.txt

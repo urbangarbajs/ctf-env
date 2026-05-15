@@ -1,1 +1,0 @@
-Welcome to HealthyClinic Imaging FTP (anonymous only). Legacy vsftpd 2.3.4 in use.

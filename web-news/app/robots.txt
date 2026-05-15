@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /moderator-review.php
+Disallow: /search.php?debug=1
+
+# NovaPress staging crawler note: comments are reviewed manually.

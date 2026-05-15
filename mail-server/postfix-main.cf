@@ -1,10 +1,10 @@
-myhostname = srv-mail.healthyclinic.local
+myhostname = srv-news-mail.novapress.local
 myorigin = /etc/mailname
-mydestination = $myhostname, localhost.localdomain, localhost
+mydestination = $myhostname, novapress.local, localhost.localdomain, localhost
 relayhost =
 inet_interfaces = all
 inet_protocols = ipv4
-smtpd_banner = HealthyClinic Mail (Postfix)
+smtpd_banner = NovaPress Mail (Postfix)
 home_mailbox = mail/
 local_transport = local
 local_recipient_maps =

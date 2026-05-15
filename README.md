@@ -1,101 +1,148 @@
-# HealthyClinic CTF Environment
+# NovaPress Slovenija CTF Environment
 
-A self-contained vulnerable lab on 10.10.10.0/24, covering discovery, enumeration, web vulns, hash cracking, privesc, and lateral movement. All services live on a single Docker bridge with fixed IPs. Flag format: `HC-CTF{...}`.
+Kratek, lokalen CTF laboratorij za zasebno etično-hackersko delavnico. Okolje predstavlja izmišljeno slovensko medijsko podjetje **NovaPress Slovenija** in javni novičarski portal z namernimi ranljivostmi.
 
-## Topology & Network
+Lab teče v Docker Compose na ločenem bridge omrežju `10.10.20.0/24`. Privzeto ni objavljenih portov na host sistem. Okolja ne izpostavljajte internetu.
 
-| Host/IP | Role | Ports/Services | Intentional clues / vulns |
-| --- | --- | --- | --- |
-| gw-hc `10.10.10.1` | Gateway placeholder | – | Present for host count only |
-| srv-emr-web `10.10.10.11` | Apache/PHP EMR | 22, 80, 443 | Banner `Apache/2.4.49` (CVE-2021-41773), SQLi login bypass, reflected XSS |
-| srv-emr-db `10.10.10.21` | MariaDB | 3306 | MRN record, backup hash, staff + mail data |
-| srv-filesmb `10.10.10.31` | Samba | 139, 445 | Guest share `HR$`, banner `Samba 4.5.16` (CVE-2017-7494 hint) |
-| srv-ftp-imaging `10.10.10.41` | vsftpd | 21 | Anonymous FTP, banner `vsftpd 2.3.4` (CVE-2011-2523 hint), `emr_backup_2026-10-01.sql.gz` |
-| srv-mail `10.10.10.51` | Postfix + Dovecot | 25, 110, 143, 587 | Mailbox `nurse.ana@healthyclinic.local / Nurse2026!`, flag in inbox |
-| srv-backup `10.10.10.61` | SSH/rsync backup | 22, 873 | User `backup/HealthyBackup2026!`, sudo NOPASSWD, GPG vault (passphrase `MRN-2026-CTF-02!`) |
-| client-mgmt `10.10.10.71` | RDP workstation | 3389 | User `HC-ADMIN/Adm1nHC!2026`, desktop flag |
+## Varnostne Opombe
 
-## Run the Lab
+- To je namerno ranljivo okolje za učenje v nadzorovanem laboratoriju.
+- Ne objavljajte portov na javnih vmesnikih.
+- Containerji niso privilegirani in ne montirajo Docker host datotečnega sistema.
+- Simuliran FTP backdoor odpre shell samo znotraj FTP containerja.
+- Vsak "root shell" je root samo v containerju, nikoli na Docker hostu.
 
-Requirements: Docker Engine + compose plugin; user in `docker` group.
+## Topologija
+
+Docker network:
+
+- ime: `news_ctf_net`
+- subnet: `10.10.20.0/24`
+- bridge: `br-news-ctf`
+
+| Host | IP | Services | Purpose |
+|---|---:|---|---|
+| gw-news | 10.10.20.1 | - | Gateway placeholder |
+| srv-news-web | 10.10.20.11 | 80 | News portal, SQLi, stored XSS |
+| srv-news-db | 10.10.20.21 | 3306 | News, employees, hashes, business data |
+| srv-news-ftp | 10.10.20.41 | 21, 6200 | Anonymous FTP, vsftpd 2.3.4 backdoor |
+| srv-news-mail | 10.10.20.51 | 25,110,143,587 | Mailbox with flag |
+
+## Zagon
+
+Zahteve: Docker Engine in Docker Compose plugin.
 
 ```bash
-make up      # build + start (no host ports published by default)
-make down    # stop + cleanup
-make rebuild # rebuild all images
+make up
+make down
+make rebuild
 ```
 
-For local access, uncomment `ports:` for web/RDP in `docker-compose.yml` if needed.
+Privzeto `docker-compose.yml` ne objavi nobenega porta na host. Če potrebujete lokalno razhroščevanje portala v brskalniku, lahko začasno odkomentirate primer `ports:` pri `srv-news-web`.
 
-## Intentional Vulnerabilities / Clues
+## Zgodba
 
-- **EMR (web-emr)**: SQLi in `login.php` → `panel.php` shows SQLi flag and MRN; `search.php` reflects input and embeds `xssFlag`; Apache banner forced to 2.4.49.
-- **DB (db-emr)**: seed MRN `MRN-2026-CTF-02`; `users.backup` SHA-256 hash `a5dbe40b...32f5c4`; staff `nurse.ana`; mail contents.
-- **FTP (ftp-imaging)**: anonymous enabled; root has `emr_backup_2026-10-01.sql.gz` + `.sql`; banner vsftpd 2.3.4 (CVE-2011-2523).
-- **Mail (mail-server)**: IMAP/POP3 login `nurse.ana@healthyclinic.local / Nurse2026!` with subject `HC-CTF{EMAIL_INTRUSION_2026}`.
-- **SMB (smb-file)**: hidden share `HR$` guest read-only with `flag_hr.txt` (`HC-CTF{SMB_DATA_LEAK_2026}`); banner Samba 4.5.16 (CVE-2017-7494).
-- **Backup (backup-host)**: SSH/rsync, sudo NOPASSWD for `backup`; user flag `/home/backup/user_flag.txt`, root flag `/root/root_flag.txt`; `/root/passwords.gpg` (passphrase MRN-2026-CTF-02!) reveals `Adm1nHC!2026`.
-- **RDP (client-mgmt)**: RDP login `HC-ADMIN/Adm1nHC!2026`, desktop `final_flag.txt` (`HC-CTF{DOMAIN_COMPROMISED_V2}`).
+NovaPress Slovenija je izmišljena medijska hiša z javnim portalom, starim FTP arhivom, notranjo podatkovno bazo in poštnim strežnikom. Portal vsebuje novice po rubrikah, komentarje bralcev, vreme, iskanje in lažno prijavo na e-novice. Uredništvo uporablja staro infrastrukturo, zato so v okolju namerno prisotne učne ranljivosti:
 
-## Tasks, Questions, and Flags
+- SQL injection v iskalniku novic.
+- Stored XSS v komentarjih člankov in uredniškem pregledu komentarjev.
+- Anonymous FTP z javno zastavico.
+- Simuliran vsftpd 2.3.4 backdoor, ki odpre shell na TCP 6200 znotraj FTP containerja.
+- Mailbox zaposlenega, dostopen po razbitju hasha.
 
-1) Discover 10.10.0.0/16, find the active /24.  
-   - Flag 1.1: `10.10.10.0/24`
-2) Count active IPs in the target /24.  
-   - Flag 2.1: `8` (10.10.10.1, .11, .21, .31, .41, .51, .61, .71)
-3) Scan all ports/services.  
-   - Flag 3.1: `13` unique TCP ports (21, 22, 25, 80, 110, 139, 143, 443, 445, 587, 873, 3306, 3389)
-4) Find the EMR portal.  
-   - Flag 4.1: `10.10.10.11`
-5) Identify web server version and CVE.  
-   - Flag 5.1: `CVE-2021-41773` (Apache/2.4.49 banner)
-6) Find the FTP server and CVE.  
-   - Flag 6.1: `CVE-2011-2523` (vsftpd 2.3.4 backdoor)
-7) Find the SMB server and CVE.  
-   - Flag 7.1: `CVE-2017-7494` (SambaCry, banner 4.5.16)
-8) Find the mail server (SMTP/POP3/IMAP).  
-   - Flag 8.1: `10.10.10.51`
-9) Find the backup host (SSH + rsync).  
-   - Flag 9.1: `10.10.10.61`
-10) SQLi on EMR login to enter the panel.  
-    - Flag 10.1: `HC-CTF{MRN-2026-CTF-02}`
-11) In the panel, find the CTF patient.  
-    - Flag 11.1: `MRN-2026-CTF-02`
-12) SQLi dump `users`, hash for `backup`.  
-    - Flag 12.1: `a5dbe40bcdc4c33a8c0778770d7e3269f28c00a0944ecc8e368e7ae74a32f5c4`
-13) Reflected XSS on `search.php`, print `xssFlag`.  
-    - Flag 13.1: `HC-CTF{XSS_RELOADED}`
-14) Anonymous FTP, find the EMR backup.  
-    - Flag 14.1: `emr_backup_2026-10-01.sql.gz`
-15) From backup/DB read `staff` for `nurse.ana`.  
-    - Flag 15.1: `nurse.ana@healthyclinic.local`
-16) Same record, nurse password.  
-    - Flag 16.1: `Nurse2026!`
-17) Login to mail with nurse creds, read mailbox.  
-    - Flag 17.1: `HC-CTF{EMAIL_INTRUSION_2026}`
-18) Enumerate SMB shares, find HR share.  
-    - Flag 18.1: `HR$`
-19) Mount HR share, read HR flag.  
-    - Flag 19.1: `HC-CTF{SMB_DATA_LEAK_2026}`
-20) Crack the SHA-256 hash from task 12.  
-    - Flag 20.1: `HealthyBackup2026!`
-21) SSH to backup with the cracked password; find user flag.  
-    - Flag 21.1: `HC-CTF{SSH_USER_PWNED_V2}`
-22) Sudo privesc on backup; find root flag.  
-    - Flag 22.1: `HC-CTF{ROOT_ON_BACKUP_V2}`
-23) As root on backup, decrypt `/root/passwords.gpg` (passphrase MRN-2026-CTF-02!).  
-    - Flag 23.1: `Adm1nHC!2026`
-24) Find RDP host, login with domain creds, read desktop flag.  
-    - Flag 24.1: `HC-CTF{DOMAIN_COMPROMISED_V2}`
+## Naloge
 
-## Quick Tips for Players
+### Naloga 1
 
-1. Start with `nmap -sn 10.10.0.0/16`, then full port scan on 10.10.10.0/24.  
-2. Banner grab for CVEs (Apache 2.4.49, vsftpd 2.3.4, Samba 4.5.16).  
-3. Web: SQLi on login (`' OR '1'='1`), panel shows MRN/XSS hint; XSS on `search.php?term=`.  
-4. FTP: anonymous `ls`, fetch `emr_backup_2026-10-01.sql.gz`.  
-5. SMB: `smbclient -L //10.10.10.31 -N`, share `HR$`, file `flag_hr.txt`.  
-6. Mail: IMAP/POP with `nurse.ana@healthyclinic.local / Nurse2026!`.  
-7. Hash cracking: SHA-256 for `backup` → `HealthyBackup2026!`.  
-8. SSH to 10.10.10.61, `sudo -i`, decrypt `/root/passwords.gpg`.  
-9. RDP to 10.10.10.71 with `HC-ADMIN/Adm1nHC!2026`, read `final_flag.txt`.
+Znotraj dovoljenega prostora `10.10.0.0/16` poišči aktivno omrežje NovaPress.
+
+Flag 1.1: Kakšen je mrežni naslov /24?
+
+### Naloga 2
+
+V ciljnem omrežju preštej aktivne IP naslove, vključno z gateway placeholderjem.
+
+Flag 2.1: Koliko aktivnih IP naslovov najdeš?
+
+### Naloga 3
+
+Poišči spletni novičarski portal.
+
+Flag 3.1: Kakšen je IP naslov spletnega strežnika?
+
+### Naloga 4
+
+Na portalu poišči možnost komentiranja novic. Preveri, ali komentarji omogočajo stored XSS. S pomočjo XSS prikaži skrito JavaScript zastavico.
+
+Flag 4.1: Kakšen je XSS flag?
+
+### Naloga 5
+
+Na iskalniku novic preveri SQL injection. S pomočjo SQLi pridobi podatke iz tabele zaposlenih.
+
+Flag 5.1: Kakšna je zastavica pri zaposlenem `matic.kovac`?
+
+### Naloga 6
+
+Iz baze pridobi SHA-256 hash uporabnika `matic.kovac`.
+
+Flag 6.1: Kakšen je celoten SHA-256 hash?
+
+### Naloga 7
+
+Uporabi namig o dolžini in obliki gesla. Razbij hash z orodjem hashcat ali john.
+
+Flag 7.1: Kakšno je plaintext geslo?
+
+### Naloga 8
+
+Preveri FTP strežnik in anonymous dostop. Poišči javno dostopno FTP zastavico.
+
+Flag 8.1: Kakšna je FTP zastavica?
+
+### Naloga 9
+
+S pridobljenim geslom se prijavi v mailbox zaposlenega `matic.kovac`. Preberi posebno e-poštno sporočilo.
+
+Flag 9.1: Kakšna je e-poštna zastavica?
+
+### Naloga 10
+
+Identificiraj FTP verzijo in javno znano ranljivost.
+
+Flag 10.1: Kakšna je oznaka CVE za vsftpd 2.3.4 backdoor?
+
+### Naloga 11
+
+Izkoristi simulirano vsftpd 2.3.4 backdoor ranljivost. Pridobi shell na FTP containerju in preberi `/root/flag_ftp_shell.txt`.
+
+Flag 11.1: Kakšna je zastavica iz FTP shell dostopa?
+
+### Naloga 12
+
+Na istem FTP containerju poišči neobjavljene osnutke novic.
+
+Flag 12.1: Kakšna je končna zastavica iz neobjavljenega osnutka?
+
+## Quick Tips
+
+```bash
+nmap -sn 10.10.0.0/16
+nmap -sC -sV -p- 10.10.20.0/24
+curl 'http://10.10.20.11/search.php?q=test'
+```
+
+Iskalnik ima namig v HTML komentarju. Začni z odkrivanjem števila stolpcev, na primer z `ORDER BY`, nato preveri `UNION SELECT`.
+
+```bash
+hashcat -m 1400 hash.txt wordlist.txt
+ftp 10.10.20.41
+nc 10.10.20.41 6200
+nc 10.10.20.51 143
+```
+
+IMAP prijava uporablja poln e-poštni naslov kot username.
+
+## Flags
+
+Za oddajo se uporabljajo vrednosti iz nalog. Vse CTF zastavice uporabljajo format `NP-CTF{...}`.

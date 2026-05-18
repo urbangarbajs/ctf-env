@@ -1,5 +1,6 @@
 User-agent: *
-Disallow: /moderator-review.php
-Disallow: /search.php?debug=1
+Disallow: /editor/
+Disallow: /tools/
+Disallow: /backup/
 
-# NovaPress staging crawler note: comments are reviewed manually.
+# NovaPress indeksiranje javnih rubrik je dovoljeno.

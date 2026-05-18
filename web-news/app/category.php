@@ -11,14 +11,14 @@ $stmt = db()->prepare('
     ORDER BY a.published_at DESC
 ');
 $stmt->execute([$name]);
-$articles = $stmt->fetchAll();
+$rows = $stmt->fetchAll();
 
 render_header($name);
 ?>
 <section class="content">
     <h1><?= h($name) ?></h1>
     <div class="list">
-        <?php foreach ($articles as $article): ?>
+        <?php foreach ($rows as $article): ?>
             <article>
                 <div class="meta"><?= h($article['author']) ?> · <?= h($article['published_at']) ?></div>
                 <h2><a href="/article.php?id=<?= (int)$article['id'] ?>"><?= h($article['title']) ?></a></h2>

@@ -14,6 +14,7 @@ services:
     container_name: ctf_srv_news_web
     depends_on:
       - srv-news-db
+      - srv-news-api
     networks:
       news_ctf_net:
         ipv4_address: 10.10.20.11
@@ -22,10 +23,6 @@ services:
       DB_USER: "newsUser"
       DB_PASS: "NewsPortal2026!"
       DB_NAME: "news_portal"
-      FLAG_XSS: "NP-CTF{STORED_XSS_IN_NEWSROOM}"
-    # Intentionally no host ports are published. For local debugging only:
-    # ports:
-    #   - "8080:80"
 
   srv-news-db:
     build: ./db-news
@@ -39,16 +36,44 @@ services:
       MYSQL_USER: "newsUser"
       MYSQL_PASSWORD: "NewsPortal2026!"
 
-  srv-news-ftp:
-    build: ./ftp-news
-    container_name: ctf_srv_news_ftp
+  srv-news-smb:
+    build: ./smb-news
+    container_name: ctf_srv_news_smb
     networks:
       news_ctf_net:
-        ipv4_address: 10.10.20.41
+        ipv4_address: 10.10.20.31
 
-  srv-news-mail:
-    build: ./mail-server
-    container_name: ctf_srv_news_mail
+  srv-news-api:
+    build: ./api-editorial
+    container_name: ctf_srv_news_api
     networks:
       news_ctf_net:
-        ipv4_address: 10.10.20.51
+        ipv4_address: 10.10.20.61
+
+  srv-news-editor:
+    build: ./editor-client
+    container_name: ctf_srv_news_editor
+    depends_on:
+      - srv-news-web
+      - srv-news-api
+    networks:
+      news_ctf_net:
+        ipv4_address: 10.10.20.71
+
+  srv-news-monitor:
+    build: ./monitor-news
+    container_name: ctf_srv_news_monitor
+    networks:
+      news_ctf_net:
+        ipv4_address: 10.10.20.81
+
+  attacker-helper:
+    build: ./attacker-helper
+    container_name: ctf_attacker_helper
+    profiles: ["attacker"]
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      news_ctf_net:
+        ipv4_address: 10.10.20.90

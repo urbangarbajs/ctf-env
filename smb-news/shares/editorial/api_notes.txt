@@ -1,0 +1,3 @@
+Uredniski API v staging okolju uporablja servisni racun za predogled.
+Seznam osnutkov ne prikaze vseh internih zapisov, zato je treba pred zagonom
+preveriti pravila dostopa do posameznega objekta.

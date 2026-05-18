@@ -35,9 +35,8 @@ function categories(): array
 function most_read(): array
 {
     return db()->query('
-        SELECT a.id, a.title, c.name AS category
+        SELECT a.id, a.title
         FROM articles a
-        JOIN categories c ON c.id = a.category_id
         ORDER BY (a.breaking * 20) + a.id DESC
         LIMIT 6
     ')->fetchAll();
@@ -45,7 +44,6 @@ function most_read(): array
 
 function render_header(string $title = 'NovaPress Slovenija'): void
 {
-    $xssFlag = getenv('FLAG_XSS') ?: 'NP-CTF{STORED_XSS_IN_NEWSROOM}';
     ?>
 <!doctype html>
 <html lang="sl">
@@ -54,11 +52,10 @@ function render_header(string $title = 'NovaPress Slovenija'): void
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= h($title) ?> | NovaPress Slovenija</title>
     <link rel="stylesheet" href="/style.css">
-    <script>window.NP_XSS_FLAG = "<?= h($xssFlag) ?>";</script>
 </head>
 <body>
 <header class="site-header">
-    <div class="topline">Ponedeljek, 18. maj 2026 · Neodvisni javni portal</div>
+    <div class="topline">Ponedeljek, 18. maj 2026 · Javni portal NovaPress Slovenija</div>
     <div class="masthead">
         <a class="logo" href="/index.php">NovaPress <span>Slovenija</span></a>
         <form class="search" action="/search.php" method="get">
@@ -70,7 +67,8 @@ function render_header(string $title = 'NovaPress Slovenija'): void
         <?php foreach (categories() as $cat): ?>
             <a href="/category.php?name=<?= urlencode($cat['name']) ?>"><?= h($cat['name']) ?></a>
         <?php endforeach; ?>
-        <a href="/about.php">O nas</a>
+        <a href="/about.php">O portalu</a>
+        <a href="/login.php">Uredništvo</a>
     </nav>
 </header>
 <main class="layout">
@@ -95,12 +93,10 @@ function render_sidebar(): void
             <?php endforeach; ?>
         </ol>
     </section>
-    <section class="newsletter">
-        <h2>E-novice</h2>
-        <form method="post" action="/about.php">
-            <input type="email" name="email" placeholder="ime@primer.si">
-            <button type="submit">Prijava</button>
-        </form>
+    <section class="editorial-box">
+        <h2>Uredniške strani</h2>
+        <p>Informacije za novinarje, fotografe in zunanje dopisnike.</p>
+        <a href="/press/pass.php?id=1001">Javni press pass</a>
     </section>
 </aside>
     <?php
@@ -113,7 +109,7 @@ function render_footer(): void
 <footer class="footer">
     <span>NovaPress Slovenija</span>
     <a href="/robots.txt">robots.txt</a>
-    <a href="/moderator-review.php">Uredniški pregled</a>
+    <a href="/tools/preview.php">Predogled virov</a>
 </footer>
 </body>
 </html>

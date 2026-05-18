@@ -1,7 +1,0 @@
-Neobjavljeni osnutki - NovaPress Slovenija
-
-- /root/drafts/unpublished-investigation.txt
-- osnutek intervjuja z oglasnim oddelkom
-- zapiski vremenske redakcije za poletno sezono
-
-Ta seznam ni v javnem FTP korenu. Dostop je mogoc samo iz notranjosti FTP containerja.

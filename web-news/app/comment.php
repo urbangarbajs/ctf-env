@@ -3,7 +3,7 @@ require __DIR__ . '/config.php';
 
 $articleId = (int)($_POST['article_id'] ?? 1);
 $author = trim($_POST['author_name'] ?? 'Anonimni bralec');
-$body = $_POST['body'] ?? '';
+$body = trim($_POST['body'] ?? '');
 
 if ($body !== '') {
     $stmt = db()->prepare('

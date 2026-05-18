@@ -1,0 +1,8 @@
+NovaPress press template
+========================
+
+Naslov:
+Avtor:
+Rubrika:
+Kontakt urednika:
+Opombe za fotografijo:

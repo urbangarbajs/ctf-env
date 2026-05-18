@@ -1,32 +1,17 @@
-# NovaPress Slovenija CTF Environment
+# NovaPress Slovenija – Recon & Internal Services CTF
 
-Kratek, lokalen CTF laboratorij za zasebno etično-hackersko delavnico. Okolje predstavlja izmišljeno slovensko medijsko podjetje **NovaPress Slovenija** in javni novičarski portal z namernimi ranljivostmi.
+Kratek, lokalen CTF laboratorij za zasebno etično-hackersko delavnico. Okolje predstavlja izmišljeno slovensko medijsko podjetje **NovaPress Slovenija** in namerno ranljivo interno omrežje.
 
-Lab teče v Docker Compose na ločenem bridge omrežju `10.10.20.0/24`. Privzeto ni objavljenih portov na host sistem. Okolja ne izpostavljajte internetu.
+**Opozorilo:** okolje je namenoma ranljivo. Nikoli ga ne izpostavljajte javnemu internetu, ne objavljajte portov na host sistem in ga uporabljajte samo v nadzorovanem laboratoriju.
 
-## Varnostne Opombe
+## Osnovna pravila
 
-- To je namerno ranljivo okolje za učenje v nadzorovanem laboratoriju.
-- Ne objavljajte portov na javnih vmesnikih.
-- Containerji niso privilegirani in ne montirajo Docker host datotečnega sistema.
-- Simuliran FTP backdoor odpre shell samo znotraj FTP containerja.
-- Vsak "root shell" je root samo v containerju, nikoli na Docker hostu.
-
-## Topologija
-
-Docker network:
-
-- ime: `news_ctf_net`
-- subnet: `10.10.20.0/24`
-- bridge: `br-news-ctf`
-
-| Host | IP | Services | Purpose |
-|---|---:|---|---|
-| gw-news | 10.10.20.1 | - | Gateway placeholder |
-| srv-news-web | 10.10.20.11 | 80 | News portal, SQLi, stored XSS |
-| srv-news-db | 10.10.20.21 | 3306 | News, employees, hashes, business data |
-| srv-news-ftp | 10.10.20.41 | 21, 6200 | Anonymous FTP, vsftpd 2.3.4 backdoor |
-| srv-news-mail | 10.10.20.51 | 25,110,143,587 | Mailbox with flag |
+- Dovoljeno je skeniranje in testiranje samo v `10.10.0.0/16`.
+- Prepovedan je DoS in rušenje storitev.
+- Ne uporabljajte napadov izven laboratorija.
+- Vse zastavice oddajte v `.txt` datoteki z oštevilčenimi odgovori.
+- Večina zastavic je oblike `NP2-CTF{...}`.
+- Nekateri odgovori so realni podatki, npr. IP naslov, število hostov ali mrežni naslov.
 
 ## Zagon
 
@@ -36,19 +21,42 @@ Zahteve: Docker Engine in Docker Compose plugin.
 make up
 make down
 make rebuild
+make logs
 ```
 
-Privzeto `docker-compose.yml` ne objavi nobenega porta na host. Če potrebujete lokalno razhroščevanje portala v brskalniku, lahko začasno odkomentirate primer `ports:` pri `srv-news-web`.
+Privzeto `docker-compose.yml` ne objavi nobenega porta na host. Containerji niso privilegirani in ne montirajo Docker host datotečnega sistema.
+
+## Topologija
+
+Docker network:
+
+- ime: `news_ctf_net`
+- subnet: `10.10.20.0/24`
+- bridge: `br-news-ctf`
+
+| Host | IP | Services | Namen |
+|---|---:|---|---|
+| gw-news | 10.10.20.1 | - | gateway placeholder |
+| srv-news-web | 10.10.20.11 | 80 | javni portal NovaPress |
+| srv-news-db | 10.10.20.21 | 3306 | podatki portala |
+| srv-news-smb | 10.10.20.31 | 139,445 | datotečne mape uredništva |
+| srv-news-api | 10.10.20.61 | 8080 | notranji uredniški API |
+| srv-news-editor | 10.10.20.71 | HTTP client | simulirana uredniška delovna postaja |
+| srv-news-monitor | 10.10.20.81 | 161/udp, 8081 | monitoring in status |
+
+Za inštruktorje je na voljo tudi opcijski `attacker-helper` profil za razhroščevanje zajema prometa v istem Docker omrežju:
+
+```bash
+docker compose --profile attacker up -d attacker-helper
+```
+
+Primarna pot za udeležence ostaja uporaba lastnega orodja v laboratorijskem segmentu.
 
 ## Zgodba
 
-NovaPress Slovenija je izmišljena medijska hiša z javnim portalom, starim FTP arhivom, notranjo podatkovno bazo in poštnim strežnikom. Portal vsebuje novice po rubrikah, komentarje bralcev, vreme, iskanje in lažno prijavo na e-novice. Uredništvo uporablja staro infrastrukturo, zato so v okolju namerno prisotne učne ranljivosti:
+NovaPress Slovenija pripravlja nov uredniški delovni tok po več letih hitre rasti. Javni portal je za obiskovalce videti običajno, v ozadju pa se uredništvo zanaša na več notranjih storitev, starejše datotečne mape, monitoring skripte in majhen uredniški API, ki ga novinarji uporabljajo pri pripravi člankov pred objavo.
 
-- SQL injection v iskalniku novic.
-- Stored XSS v komentarjih člankov in uredniškem pregledu komentarjev.
-- Anonymous FTP z javno zastavico.
-- Simuliran vsftpd 2.3.4 backdoor, ki odpre shell na TCP 6200 znotraj FTP containerja.
-- Mailbox zaposlenega, dostopen po razbitju hasha.
+V zadnjem tednu je IT ekipa opazila nenavaden dostop do metapodatkov neobjavljenih člankov in čudno sejno aktivnost ene uredniške delovne postaje. Vodstvo je naročilo nadzorovan varnostni pregled pred zagonom novega procesa. Cilj je ugotoviti, ali bi napadalec v istem laboratorijskem omrežju lahko mapiral okolje, odkril izpostavljene interne vire, prestregel nezaščiten promet in dostopal do neobjavljenega uredniškega gradiva.
 
 ## Naloge
 
@@ -56,93 +64,105 @@ NovaPress Slovenija je izmišljena medijska hiša z javnim portalom, starim FTP 
 
 Znotraj dovoljenega prostora `10.10.0.0/16` poišči aktivno omrežje NovaPress.
 
-Flag 1.1: Kakšen je mrežni naslov /24?
+Zastavica 1.1. Kakšen je mrežni naslov /24?
 
 ### Naloga 2
 
-V ciljnem omrežju preštej aktivne IP naslove, vključno z gateway placeholderjem.
+V ciljnem omrežju odkrij in preštej aktivne IP naslove.
 
-Flag 2.1: Koliko aktivnih IP naslovov najdeš?
+Zastavica 2.1. Koliko aktivnih IP naslovov najdeš?
 
 ### Naloga 3
 
-Poišči spletni novičarski portal.
+Poišči javni spletni portal NovaPress.
 
-Flag 3.1: Kakšen je IP naslov spletnega strežnika?
+Zastavica 3.1. Kakšen je IP naslov spletnega strežnika?
 
 ### Naloga 4
 
-Na portalu poišči možnost komentiranja novic. Preveri, ali komentarji omogočajo stored XSS. S pomočjo XSS prikaži skrito JavaScript zastavico.
+Z orodjem Nikto, OWASP ZAP ali ročnim pregledom poišči izpostavljene varnostne kopije oziroma konfiguracijske datoteke na spletnem strežniku.
 
-Flag 4.1: Kakšen je XSS flag?
+Zastavica 4.1. Kakšna zastavica je zapisana v izpostavljeni deploy konfiguraciji?
 
 ### Naloga 5
 
-Na iskalniku novic preveri SQL injection. S pomočjo SQLi pridobi podatke iz tabele zaposlenih.
+V izpostavljenih datotekah poišči staro proxy konfiguracijo.
 
-Flag 5.1: Kakšna je zastavica pri zaposlenem `matic.kovac`?
+Zastavica 5.1. Kakšna zastavica je zapisana v stari proxy konfiguraciji?
 
 ### Naloga 6
 
-Iz baze pridobi SHA-256 hash uporabnika `matic.kovac`.
+Na portalu preveri, ali lahko z ugibanjem oziroma spreminjanjem identifikatorjev dostopaš do neobjavljenih novinarskih oziroma uredniških podatkov.
 
-Flag 6.1: Kakšen je celoten SHA-256 hash?
+Zastavica 6.1. Kakšna je zastavica iz neobjavljenega press pass zapisa?
 
 ### Naloga 7
 
-Uporabi namig o dolžini in obliki gesla. Razbij hash z orodjem hashcat ali john.
+Preveri funkcijo za predogled zunanjih virov. Ugotovi, ali lahko prek nje dosežeš notranjo storitev.
 
-Flag 7.1: Kakšno je plaintext geslo?
+Zastavica 7.1. Kakšna je zastavica, ki jo vrne notranji status endpoint?
 
 ### Naloga 8
 
-Preveri FTP strežnik in anonymous dostop. Poišči javno dostopno FTP zastavico.
+Poišči SMB strežnik in enumeriraj deljene mape z Nmap NSE, enum4linux ali smbclient.
 
-Flag 8.1: Kakšna je FTP zastavica?
+Zastavica 8.1. Kakšna je zastavica v javni SMB deljeni mapi?
 
 ### Naloga 9
 
-S pridobljenim geslom se prijavi v mailbox zaposlenega `matic.kovac`. Preberi posebno e-poštno sporočilo.
+Preglej uredniško SMB deljeno mapo.
 
-Flag 9.1: Kakšna je e-poštna zastavica?
+Zastavica 9.1. Kakšna je zastavica v uredniški deljeni mapi?
 
 ### Naloga 10
 
-Identificiraj FTP verzijo in javno znano ranljivost.
+Preveri, ali je katera SMB deljena mapa zapisljiva. Ustvari neškodljivo testno datoteko in jo naloži v ustrezen share.
 
-Flag 10.1: Kakšna je oznaka CVE za vsftpd 2.3.4 backdoor?
+Zastavica 10.1. Kakšna je zastavica za potrjeno zapisljivost SMB share-a?
 
 ### Naloga 11
 
-Izkoristi simulirano vsftpd 2.3.4 backdoor ranljivost. Pridobi shell na FTP containerju in preberi `/root/flag_ftp_shell.txt`.
+Iz izpostavljene konfiguracije pridobi API ključ in preveri notranji uredniški API. Nato preveri, ali lahko dostopaš do osnutka, ki ni prikazan na seznamu navadnih osnutkov.
 
-Flag 11.1: Kakšna je zastavica iz FTP shell dostopa?
+Zastavica 11.1. Kakšna je zastavica iz zaupnega osnutka?
 
 ### Naloga 12
 
-Na istem FTP containerju poišči neobjavljene osnutke novic.
+Poišči monitoring napravo in preveri, ali razkriva informacije prek SNMP.
 
-Flag 12.1: Kakšna je končna zastavica iz neobjavljenega osnutka?
+Zastavica 12.1. Kakšna je zastavica iz SNMP odgovora?
 
-## Quick Tips
+### Naloga 13
+
+Z Wiresharkom, tcpdumpom ali on-path napadom prestrezi promet uredniške delovne postaje. Poišči HTTP prijavo ali sejo, ki potuje v nešifrirani obliki.
+
+Zastavica 13.1. Kakšna je zastavica, ki jo najdeš po zajemu HTTP seje?
+
+### Naloga 14
+
+Na monitoring hostu poišči nestandardno storitev. S Scapyjem pošlji ustrezen TCP paket oziroma payload in preberi odgovor.
+
+Zastavica 14.1. Kakšna je zastavica iz custom probe odgovora?
+
+### Naloga 15
+
+Sestavi kratek tehnični povzetek ugotovitev: aktivni hosti, izpostavljene storitve, najdene ranljivosti, možen vpliv in priporočila za odpravo.
+
+Zastavica 15.1. Za zaključek oddaj zastavico iz navodil za poročilo.
+
+## Namigi
 
 ```bash
 nmap -sn 10.10.0.0/16
 nmap -sC -sV -p- 10.10.20.0/24
-curl 'http://10.10.20.11/search.php?q=test'
+nikto -h http://10.10.20.11
+enum4linux -a 10.10.20.31
+smbclient -L //10.10.20.31 -N
+smbclient //10.10.20.31/public -N
+snmpwalk -v2c -c public 10.10.20.81
+tcpdump -i <iface> -s 0 -w novapress.pcap
+wireshark novapress.pcap
+ettercap -T -q -i <iface> --write mitm.pcap --mitm arp /10.10.20.71// /10.10.20.11//
 ```
 
-Iskalnik ima namig v HTML komentarju. Začni z odkrivanjem števila stolpcev, na primer z `ORDER BY`, nato preveri `UNION SELECT`.
-
-```bash
-hashcat -m 1400 hash.txt wordlist.txt
-ftp 10.10.20.41
-nc 10.10.20.41 6200
-nc 10.10.20.51 143
-```
-
-IMAP prijava uporablja poln e-poštni naslov kot username.
-
-## Flags
-
-Za oddajo se uporabljajo vrednosti iz nalog. Vse CTF zastavice uporabljajo format `NP-CTF{...}`.
+Nekatere storitve odgovorijo šele, ko prejmejo točno določen payload.

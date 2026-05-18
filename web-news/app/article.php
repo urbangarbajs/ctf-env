@@ -37,7 +37,7 @@ render_header($article['title']);
         <div class="byline">Avtor: <?= h($article['author']) ?> · <?= h($article['author_email']) ?></div>
     </article>
 
-    <section class="comments">
+    <section class="comments" id="comments">
         <h2>Komentarji bralcev</h2>
         <form class="comment-form" action="/comment.php" method="post">
             <input type="hidden" name="article_id" value="<?= (int)$article['id'] ?>">
@@ -49,7 +49,7 @@ render_header($article['title']);
             <div class="comment">
                 <strong><?= h($comment['author_name']) ?></strong>
                 <span><?= h($comment['created_at']) ?> · <?= h($comment['status']) ?></span>
-                <div class="comment-body"><?= $comment['body'] ?></div>
+                <div class="comment-body"><?= h($comment['body']) ?></div>
             </div>
         <?php endforeach; ?>
     </section>

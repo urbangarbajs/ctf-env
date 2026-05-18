@@ -1,0 +1,13 @@
+# Old NovaPress reverse proxy draft. Not in production.
+server {
+    listen 80;
+    server_name portal.novapress.local;
+
+    location /api-preview/ {
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_pass http://10.10.20.61:8080;
+    }
+}
+
+# cleanup marker: NP2-CTF{OLD_PROXY_CONFIG_LEAK}

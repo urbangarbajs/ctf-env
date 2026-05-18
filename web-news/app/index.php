@@ -16,7 +16,7 @@ $latest = db()->query('
     JOIN categories c ON c.id = a.category_id
     JOIN journalists j ON j.id = a.journalist_id
     ORDER BY a.published_at DESC
-    LIMIT 18 OFFSET 8
+    LIMIT 10 OFFSET 8
 ')->fetchAll();
 
 render_header('Naslovnica');

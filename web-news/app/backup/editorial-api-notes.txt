@@ -1,0 +1,7 @@
+NovaPress uredniske opombe
+===========================
+
+Novi uredniski API je v staging okolju. Dostop je namenjen samo internim
+odjemalcem in servisnemu racunu za predogled osnutkov. Pred javnim zagonom je
+treba preveriti izpostavljene konfiguracijske kopije in staro proxy
+dokumentacijo.

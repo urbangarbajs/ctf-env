@@ -156,7 +156,7 @@ INSERT INTO employees (username, full_name, role, email, phone_extension, intern
 ('tina.mlakar','Tina Mlakar','vremenska urednica','tina.mlakar@novapress.local','188',NULL);
 
 INSERT INTO users (username, email, password_hash, password_hint, role) VALUES
-('matic.kovac','matic.kovac@novapress.local','e98b57dad8ff20a3c286da82b5e730f659d0b75e7bff31b245530b812f8ea901','Rubrika portala + leto + klicaj','editor'),
+('matic.kovac','matic.kovac@novapress.local','7fa5331351d857d9b522c9b52bcbc6fb4d1609ac9a66fd302a955b607ac66177','Rubrika portala + leto + klicaj','editor'),
 ('ana.zupan','ana.zupan@novapress.local','6f5e8c7d0bde45221f2e6a8f64f8a7e8d13bfa44b4e92ac2f1979d129e4da96e','Ni del laboratorijske poti','admin'),
 ('rok.pirc','rok.pirc@novapress.local','87df9f7d588d5bd0d4d7c9f89fb9b33c8dd5296010d6ecbd515e4f1b99cbb63b','Ni del laboratorijske poti','sales');
 
@@ -167,4 +167,4 @@ INSERT INTO business_documents (doc_title, owner_department, classification, sum
 ('Seznam partnerskih radijskih postaj','poslovni razvoj','interno','Kontakti lokalnih postaj za jutranje novice in vremenske povzetke.',2026);
 
 INSERT INTO password_policy_notes (account, hash_type, hashcat_mode, password_length, pattern, additional_hint) VALUES
-('matic.kovac','SHA-256','1400',11,'Slovenska beseda z veliko začetnico + 2026 + !','Osnovna beseda je ena izmed glavnih rubrik portala.');
+('matic.kovac','SHA-256','1400',12,'Slovenska beseda z veliko začetnico + 2024 + !','Osnovna beseda je ena izmed glavnih rubrik portala.');

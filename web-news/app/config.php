@@ -58,7 +58,7 @@ function render_header(string $title = 'NovaPress Slovenija'): void
 </head>
 <body>
 <header class="site-header">
-    <div class="topline">Petek, 15. maj 2026 · Neodvisni javni portal</div>
+    <div class="topline">Ponedeljek, 18. maj 2026 · Neodvisni javni portal</div>
     <div class="masthead">
         <a class="logo" href="/index.php">NovaPress <span>Slovenija</span></a>
         <form class="search" action="/search.php" method="get">
